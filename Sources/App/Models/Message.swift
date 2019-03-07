@@ -13,13 +13,13 @@ final class Message: SQLiteModel {
     var id: Int?
 
     var message: String
-    var creator: String
+    var creatorOid: String
     var new: Bool?
 
-    init(id: Int? = nil, message: String, creator: String) {
+    init(id: Int? = nil, message: String, creatorOid: String) {
         self.id = id
         self.message = message
-        self.creator = creator
+        self.creatorOid = creatorOid
         self.new = true
     }
 }

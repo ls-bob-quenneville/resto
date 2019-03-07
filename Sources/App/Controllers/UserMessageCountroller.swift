@@ -17,11 +17,11 @@ final class UserMessageController {
             return message.save(on: req)
         }
 
-        let users = req.content.get([User.ID].self, at: "userIds").flatMap { ids in
+        let users = req.content.get([Int].self, at: "userIds").flatMap { ids in
 
             req.withPooledConnection(to: .sqlite) { connection -> Future<[User]> in
                     return connection.raw("""
-                                SELECT * FROM User WHERE ID IN (\(ids.compactMap({id in String(id)}).joined(separator: ",")));
+                                SELECT * FROM User WHERE OID IN (\(ids.compactMap({id in String(id)}).joined(separator: ",")));
                             """).all(decoding: User.self)
             }
         }
@@ -42,22 +42,28 @@ final class UserMessageController {
     }
 
     func messages(_ req: Request) throws -> Future<[Message]> {
-        return try req.parameters.next(User.self).flatMap { user in
-            return try user.messages.query(on: req).all()
+
+        let userOid = try req.parameters.next(Int.self)
+
+        return User.findUser(using: req, with: userOid).flatMap { user in
+                return try user.messages.query(on: req).all()
         }
     }
 
     func newMessages(_ req: Request) throws -> Future<Int> {
-        return try req.parameters.next(User.self).flatMap { user in
-            return try user.messages.query(on: req).filter(\Message.new, .equal, true).count()
+
+        let userOid = try req.parameters.next(Int.self)
+
+        return User.findUser(using: req, with: userOid).flatMap { user in
+                return try user.messages.query(on: req).filter(\Message.new, .equal, true).count()
         }
     }
 
     func routes(_ router: Router) {
 
         router.post("userMessage", use: self.create)
-        router.get("userMessage", User.parameter, use: self.messages)
-        router.get("userMessage", User.parameter, "new", use: self.newMessages)
+        router.get("userMessage", Int.parameter, use: self.messages)
+        router.get("userMessage", Int.parameter, "new", use: self.newMessages)
     }
 }
 

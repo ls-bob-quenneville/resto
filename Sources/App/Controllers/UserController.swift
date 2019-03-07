@@ -26,9 +26,12 @@ final class UserController {
     }
 
     func delete(_ req: Request) throws -> Future<HTTPStatus> {
-        return try req.parameters.next(User.self).flatMap { user in
+
+        let userOid = try req.parameters.next(Int.self)
+
+        return User.findUser(using: req, with: userOid).flatMap { user in
             return user.delete(on: req)
-            }.transform(to: .ok)
+        }.transform(to: .ok)
     }
 
     func routes(_ router: Router) {
@@ -36,6 +39,6 @@ final class UserController {
         router.get("user", use: self.index)
         router.post("user", use: self.create)
         router.post("users", use: self.createUsers)
-        router.delete("user", User.parameter, use: self.delete)
+        router.delete("user", Int.parameter, use: self.delete)
     }
 }
