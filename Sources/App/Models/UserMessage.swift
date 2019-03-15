@@ -20,6 +20,7 @@ final class UserMessage: SQLitePivot {
 
     var userId: Int
     var messageId: Int
+    var new: Bool?
 
     init(id: Int? = nil, userId: Int, messageId: Message.ID) {
         self.id = id
